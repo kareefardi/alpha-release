@@ -53,6 +53,7 @@ $(RESULTS_DIR)/1_1_yosys.v: $(OBJECTS_DIR)/merged.lib
 $(RESULTS_DIR)/netlist.v: $(RESULTS_DIR)/1_1_yosys.v
 	cp $< $@
 
+synth: $(RESULTS_DIR)/netlist.v
 
 # FLOORPLAN
 # ==============================================================================
@@ -141,6 +142,16 @@ $(RESULTS_DIR)/placed_gp_dp_dr.def: $(OBJECTS_DIR)/TritonRoute.param
 
 
 route: $(RESULTS_DIR)/placed_gp_dp_dr.def
+
+
+# OpenSTA Analysis
+# ==============================================================================
+export NETLIST = $(RESULTS_DIR)/netlist.v
+
+opensta: $(MERGED_LIB) $(NETLIST)
+	envsubst < $(SCRIPTS_DIR)/sta.tcl > $(OBJECTS_DIR)/sta.tcl
+	sta $(OBJECTS_DIR)/sta.tcl \
+		2>&1 | tee $(REPORTS_DIR)/opensta.rpt $(LOG_DIR)/opensta.log
 
 clean:
 	rm -rf ./new_results ./new_logs ./new_reports ./new_objects
